@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration;
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
+import org.springframework.data.relational.core.mapping.NamingStrategy;
+import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -56,5 +58,20 @@ public class RootConfig extends AbstractJdbcConfiguration {
     initializer.setEnabled(true);
 
     return initializer;
+  }
+
+  @Bean
+  public NamingStrategy namingStrategy() {
+    return new NamingStrategy() {
+      @Override
+      public String getTableName(Class<?> type) {
+        return type.getSimpleName().toUpperCase();
+      }
+
+      @Override
+      public String getColumnName(RelationalPersistentProperty property) {
+        return property.getName().toUpperCase();
+      }
+    };
   }
 }

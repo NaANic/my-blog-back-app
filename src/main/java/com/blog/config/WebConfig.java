@@ -6,11 +6,13 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
@@ -22,7 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
 
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-    // Настраиваем Jackson для JSON
+    // JSON converter
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.registerModule(new JavaTimeModule());
     objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -31,23 +33,38 @@ public class WebConfig implements WebMvcConfigurer {
     MappingJackson2HttpMessageConverter jsonConverter = new MappingJackson2HttpMessageConverter();
     jsonConverter.setObjectMapper(objectMapper);
 
+    // ✅ ДОБАВЛЯЕМ ByteArrayHttpMessageConverter для изображений
+    ByteArrayHttpMessageConverter byteArrayConverter = new ByteArrayHttpMessageConverter();
+
+    converters.add(byteArrayConverter);  // ⬅️ ВАЖНО: добавить ПЕРВЫМ
     converters.add(jsonConverter);
   }
 
   @Override
   public void addCorsMappings(CorsRegistry registry) {
-    registry.addMapping("/api/**")
-        .allowedOrigins("http://localhost", "http://localhost:3000", "http://localhost:8080")
+    registry.addMapping("/**")
+        .allowedOriginPatterns("*")
         .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
         .allowedHeaders("*")
-        .allowCredentials(true)
+        .exposedHeaders("*")
+        .allowCredentials(false)
         .maxAge(3600);
+  }
+
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    // Для отладки - HTML тестовая страница
+    registry.addResourceHandler("/test-upload.html")
+        .addResourceLocations("classpath:/");
+
+    // Для статических изображений из папки uploads
+    registry.addResourceHandler("/uploads/**")
+        .addResourceLocations("file:uploads/");
   }
 
   @Bean
   public StandardServletMultipartResolver multipartResolver() {
-    StandardServletMultipartResolver resolver = new StandardServletMultipartResolver();
-    return resolver;
+    return new StandardServletMultipartResolver();
   }
 
   @Bean

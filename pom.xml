@@ -25,6 +25,7 @@
     <h2.version>2.2.224</h2.version>
     <servlet-api.version>6.0.0</servlet-api.version>
     <junit.version>5.10.1</junit.version>
+    <jakarta-annotation.version>2.1.1</jakarta-annotation.version>
   </properties>
 
   <dependencies>
@@ -109,6 +110,13 @@
       <artifactId>jakarta.servlet-api</artifactId>
       <version>${servlet-api.version}</version>
       <scope>provided</scope>
+    </dependency>
+
+    <!-- Jakarta Annotations (для @PostConstruct) -->
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+      <version>${jakarta-annotation.version}</version>
     </dependency>
 
     <!-- Commons FileUpload (для multipart) -->
@@ -202,6 +210,7 @@
           <source>21</source>
           <target>21</target>
           <encoding>UTF-8</encoding>
+          <parameters>true</parameters>
           <annotationProcessorPaths>
             <path>
               <groupId>org.projectlombok</groupId>
