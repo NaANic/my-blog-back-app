@@ -1,4 +1,3 @@
-```markdown
 # Blog Backend
 
 REST API бэкенд для приложения-блога на Spring Framework 6.1 (без Spring Boot).
@@ -12,6 +11,7 @@ REST API бэкенд для приложения-блога на Spring Framewo
 - Загрузки и отображения изображений
 - Лайков постов
 - Каскадного удаления
+- Bean Validation для входных данных
 
 ## 🛠 Технологии
 
@@ -22,6 +22,7 @@ REST API бэкенд для приложения-блога на Spring Framewo
 - **Maven 3.9+**
 - **Tomcat 10.1**
 - **JUnit 5** + **Mockito** (тестирование)
+- **Hibernate Validator** (Bean Validation)
 - **Lombok** (упрощение кода)
 - **Logback** (логирование)
 
@@ -57,7 +58,7 @@ mvn test
 
 **Результат:**
 ```
-Tests run: 39, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 50, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS ✅
 ```
 
@@ -228,9 +229,38 @@ src/main/java/com/blog/
 │   ├── PostRepository.java
 │   └── CommentRepository.java
 └── service/                  # Бизнес-логика
-    ├── PostService.java
-    └── CommentService.java
+    ├── PostService.java           # CRUD операции с постами
+    ├── PostSearchService.java     # Поиск и фильтрация
+    ├── ImageStorageService.java   # Работа с изображениями
+    └── CommentService.java        # Работа с комментариями
 ```
+
+### Разделение ответственности (Single Responsibility Principle)
+
+#### PostService
+**Ответственность:** Базовые CRUD операции с постами
+- Создание, чтение, обновление, удаление постов
+- Управление счётчиками (лайки, комментарии)
+- Проверка существования постов
+
+#### PostSearchService
+**Ответственность:** Поиск и фильтрация постов
+- Парсинг поисковых запросов (теги + текст)
+- Фильтрация по названию и тегам
+- Пагинация результатов
+
+#### ImageStorageService
+**Ответственность:** Работа с изображениями
+- Сохранение изображений в файловую систему
+- Загрузка изображений
+- Управление дефолтным изображением
+- Удаление изображений
+
+#### CommentService
+**Ответственность:** Работа с комментариями
+- CRUD операции с комментариями
+- Автоматическое обновление счётчиков в постах
+- Каскадное удаление
 
 ## 🗄 База данных
 
@@ -262,8 +292,12 @@ src/main/java/com/blog/
 
 ### Структура тестов
 
-- **20 юнит-тестов** — `PostServiceTest`, `CommentServiceTest`
-- **19 интеграционных тестов** — `PostControllerIntegrationTest`, `CommentControllerIntegrationTest`
+- **30 юнит-тестов** — тесты для всех сервисов
+    - `PostServiceTest` — тесты CRUD операций
+    - `PostSearchServiceTest` — тесты поиска и фильтрации
+    - `ImageStorageServiceTest` — тесты работы с изображениями
+    - `CommentServiceTest` — тесты комментариев
+- **20 интеграционных тестов** — `PostControllerIntegrationTest`, `CommentControllerIntegrationTest`
 
 ### Запуск всех тестов
 
@@ -286,6 +320,7 @@ mvn test -Dtest=PostServiceTest
 - ✅ Загрузка изображений
 - ✅ Валидация входных данных
 - ✅ Обработка ошибок
+- ✅ Разделение ответственности сервисов
 
 ## 📝 Логирование
 
@@ -334,7 +369,14 @@ CORS настроен для работы с фронтендом:
 
 - **Max File Size:** 10 MB
 - **Max Request Size:** 20 MB
-- **Upload Directory:** `uploads/`
+- **Upload Directory:** `uploads/` (настраивается через `app.upload.dir`)
+
+### Bean Validation
+
+Все входные данные валидируются с помощью Bean Validation:
+- `@NotBlank` — для обязательных строк
+- `@Size` — для ограничения длины
+- `@Valid` — для вложенных объектов
 
 ## 🐛 Известные особенности
 
@@ -355,6 +397,7 @@ CORS настроен для работы с фронтендом:
 - **H2 in-memory** — быстрая БД для разработки
 - **Connection pooling** — готово к добавлению (HikariCP)
 - **Кеширование изображений** — через HTTP заголовки (`Cache-Control: max-age=3600`)
+- **@Transactional(readOnly = true)** — оптимизация для операций чтения
 
 ## 🔐 Безопасность
 
@@ -363,7 +406,6 @@ CORS настроен для работы с фронтендом:
 Для продакшена добавьте:
 - Spring Security
 - JWT токены
-- Валидацию на уровне контроллеров (`@Valid`)
 
 ## 🚧 Roadmap
 
@@ -376,9 +418,9 @@ CORS настроен для работы с фронтендом:
 
 ## 👨‍💻 Автор
 
-**Андрей Нагаткин**
+**Алексей Нагаткин**
 
-- GitHub: [@nagatkin](https://github.com/NaANic)
+- GitHub: [@NaANic](https://github.com/NaANic)
 - Email: a.nagatkin@mail.ru
 
 ## 📄 Лицензия
@@ -397,14 +439,48 @@ MIT License
 
 ✅ Spring Framework 6.1+  
 ✅ Java 21  
-✅ Maven/Gradle  
-✅ Сервлет-контейнер (Tomcat/Jetty)  
+✅ Maven  
+✅ Сервлет-контейнер (Tomcat)  
 ✅ REST API  
-✅ База данных  
-✅ Тесты (юнит + интеграционные)  
-✅ Git + GitHub
+✅ База данных (H2)  
+✅ Тесты (50 юнит + интеграционных)  
+✅ Git + GitHub  
+✅ Bean Validation  
+✅ Разделение ответственности (Single Responsibility Principle)
+
+---
+
+## 🎉 Изменения после ревью
+
+### Рефакторинг архитектуры:
+- ✅ Разделён монолитный `PostService` на **4 специализированных сервиса**:
+    - `PostService` — базовые CRUD операции
+    - `PostSearchService` — поиск и фильтрация
+    - `ImageStorageService` — работа с изображениями
+    - `CommentService` — работа с комментариями
+- ✅ Улучшено разделение ответственности (Single Responsibility Principle)
+- ✅ Каждый сервис отвечает за одну область функциональности
+
+### Валидация:
+- ✅ Добавлена Bean Validation для всех DTO
+- ✅ Добавлены аннотации `@NotBlank`, `@Size`
+- ✅ Контроллеры используют `@Valid`
+
+### Обработка ошибок:
+- ✅ Улучшен `GlobalExceptionHandler`
+- ✅ Добавлена обработка `MethodArgumentNotValidException`
+- ✅ Понятные сообщения об ошибках валидации
+
+### Тестирование:
+- ✅ Добавлены тесты для всех новых сервисов
+- ✅ Обновлены интеграционные тесты
+- ✅ **50 тестов проходят успешно**
+
+### Качество кода:
+- ✅ Улучшен `.gitignore`
+- ✅ Чистая история коммитов
+- ✅ Применён принцип Single Responsibility
 
 ---
 
 **⭐ Если проект был полезен, поставьте звезду на GitHub!**
-```
