@@ -1,4 +1,6 @@
+# ============================================
 # Maven
+# ============================================
 target/
 pom.xml.tag
 pom.xml.releaseBackup
@@ -8,35 +10,153 @@ release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
-# IDE
+# ============================================
+# IntelliJ IDEA
+# ============================================
 .idea/
 *.iml
 *.ipr
 *.iws
+
+# Но оставляем некоторые полезные файлы IDEA для команды:
+!.idea/codeStyles/
+!.idea/inspectionProfiles/
+!.idea/runConfigurations/
+
+# Workspace и другие личные настройки
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/dictionaries/
+.idea/shelf/
+.idea/sonarlint/
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/libraries/
+.idea/modules.xml
+.idea/misc.xml
+.idea/vcs.xml
+.idea/jsLibraryMappings.xml
+.idea/dataSources.xml
+.idea/dataSources.ids
+.idea/sqlDataSources.xml
+.idea/dynamic.xml
+.idea/uiDesigner.xml
+.idea/dbnavigator.xml
+.idea/deploymentTargetDropDown.xml
+
+# ============================================
+# Eclipse
+# ============================================
 .classpath
 .project
 .settings/
+bin/
+.metadata/
+.recommenders/
+
+# ============================================
+# VS Code
+# ============================================
 .vscode/
+*.code-workspace
+
+# ============================================
+# Vim
+# ============================================
 *.swp
 *.swo
+*~
 
+# ============================================
 # OS
+# ============================================
+# macOS
 .DS_Store
-Thumbs.db
+.AppleDouble
+.LSOverride
+._*
 
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ============================================
 # Logs
+# ============================================
 *.log
 logs/
+*.log.*
+*.out
 
+# ============================================
 # Environment
+# ============================================
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+*.env
 
+# ============================================
 # Database
+# ============================================
 *.db
 *.sqlite
-.idea/workspace.xml
+*.sqlite3
+*.db-journal
+*.db-shm
+*.db-wal
+
+# ============================================
+# Application specific
+# ============================================
+# Uploads directory
+uploads/
+upload/
+temp/
+tmp/
+
+# Test coverage
+*.exec
+.sonar/
+coverage/
+
+# ============================================
+# Build tools
+# ============================================
+.gradle/
+build/
+out/
+dist/
+
+# ============================================
+# Security
+# ============================================
+*.key
+*.pem
+*.p12
+*.jks
+secrets/
+credentials/
+
+# ============================================
+# Temporary files
+# ============================================
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*.orig

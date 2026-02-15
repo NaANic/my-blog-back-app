@@ -1,8 +1,13 @@
 package com.blog.service;
 
+import com.blog.dto.PostDTO;
+import com.blog.dto.PostListResponse;
 import com.blog.model.Post;
+import com.blog.repository.PostRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,16 +16,46 @@ import java.util.stream.Collectors;
 
 /**
  * Сервис для поиска и фильтрации постов.
- * Отвечает за парсинг поискового запроса и фильтрацию результатов.
  */
 @Slf4j
 @Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class PostSearchService {
 
+  private final PostRepository postRepository;
+
   /**
-   * Распарсить строку поиска на теги и подстроку для поиска по названию
+   * Поиск постов с фильтрацией и пагинацией
+   *
+   * @param search строка поиска (может содержать теги и текст)
+   * @param pageNumber номер страницы (начиная с 1)
+   * @param pageSize размер страницы
+   * @return результаты поиска с пагинацией
    */
-  public SearchCriteria parseSearch(String search) {
+  public PostListResponse searchPosts(String search, Integer pageNumber, Integer pageSize) {
+    log.debug("searchPosts: search='{}', page={}, size={}", search, pageNumber, pageSize);
+
+    // Парсинг поискового запроса
+    SearchCriteria criteria = parseSearchString(search);
+    log.debug("Parsed search: titleSearch='{}', tags={}", criteria.titleSearch, criteria.tags);
+
+    // Получение постов из БД
+    List<Post> allPosts = fetchPosts(criteria);
+    log.debug("Found {} posts after filtering", allPosts.size());
+
+    // Фильтрация по тегам
+    List<Post> filteredPosts = filterByTags(allPosts, criteria.tags);
+    log.debug("Found {} posts after tag filter", filteredPosts.size());
+
+    // Пагинация
+    return paginatePosts(filteredPosts, pageNumber, pageSize);
+  }
+
+  /**
+   * Парсинг строки поиска на теги и текст
+   */
+  private SearchCriteria parseSearchString(String search) {
     if (search == null || search.isBlank()) {
       return new SearchCriteria(null, List.of());
     }
@@ -28,90 +63,73 @@ public class PostSearchService {
     List<String> tags = new ArrayList<>();
     List<String> titleWords = new ArrayList<>();
 
-    // Разбиваем на слова
     String[] words = search.trim().split("\\s+");
-
     for (String word : words) {
-      if (word.isEmpty()) {
-        continue;
-      }
-
       if (word.startsWith("#")) {
-        // Это тег
-        String tag = word.substring(1).toLowerCase();
-        if (!tag.isEmpty()) {
-          tags.add(tag);
-        }
-      } else {
-        // Это часть названия
+        tags.add(word.substring(1).toLowerCase());
+      } else if (!word.isBlank()) {
         titleWords.add(word);
       }
     }
 
     String titleSearch = titleWords.isEmpty() ? null : String.join(" ", titleWords);
-
-    log.debug("Parsed search: titleSearch='{}', tags={}", titleSearch, tags);
     return new SearchCriteria(titleSearch, tags);
   }
 
   /**
-   * Фильтровать посты по тегам
+   * Получение постов из БД с учётом поиска по названию
    */
-  public List<Post> filterByTags(List<Post> posts, List<String> tags) {
+  private List<Post> fetchPosts(SearchCriteria criteria) {
+    if (criteria.titleSearch != null && !criteria.titleSearch.isBlank()) {
+      return postRepository.findAllWithTitleFilter(criteria.titleSearch);
+    } else {
+      List<Post> posts = new ArrayList<>();
+      postRepository.findAllOrderByCreatedAtDesc().forEach(posts::add);
+      return posts;
+    }
+  }
+
+  /**
+   * Фильтрация постов по тегам (логика "И")
+   */
+  private List<Post> filterByTags(List<Post> posts, List<String> tags) {
     if (tags.isEmpty()) {
       return posts;
     }
 
     return posts.stream()
-        .filter(post -> postHasAllTags(post, tags))
+        .filter(post -> {
+          String postTags = post.getTags() != null ? post.getTags().toLowerCase() : "";
+          return tags.stream().allMatch(tag -> postTags.contains("#" + tag + "#"));
+        })
         .collect(Collectors.toList());
   }
 
   /**
-   * Проверить, содержит ли пост все указанные теги
+   * Пагинация результатов
    */
-  private boolean postHasAllTags(Post post, List<String> requiredTags) {
-    if (post.getTags() == null || post.getTags().isEmpty()) {
-      return false;
-    }
+  private PostListResponse paginatePosts(List<Post> posts, Integer pageNumber, Integer pageSize) {
+    int totalPosts = posts.size();
+    int lastPage = (int) Math.ceil((double) totalPosts / pageSize);
 
-    List<String> postTags = parseTagsFromString(post.getTags());
+    int startIndex = (pageNumber - 1) * pageSize;
+    int endIndex = Math.min(startIndex + pageSize, totalPosts);
 
-    return postTags.containsAll(requiredTags);
-  }
-
-  /**
-   * Распарсить теги из строки "#java#spring#" в список ["java", "spring"]
-   */
-  public List<String> parseTagsFromString(String tagsString) {
-    if (tagsString == null || tagsString.isEmpty()) {
-      return List.of();
-    }
-
-    return Arrays.stream(tagsString.split("#"))
-        .map(String::trim)
-        .filter(tag -> !tag.isEmpty())
-        .map(String::toLowerCase)
+    List<Post> pagePosts = posts.subList(startIndex, endIndex);
+    List<PostDTO> postDTOs = pagePosts.stream()
+        .map(post -> PostDTO.fromEntity(post, true)) // truncate = true для списка
         .collect(Collectors.toList());
+
+    return PostListResponse.builder()
+        .posts(postDTOs)
+        .hasPrev(pageNumber > 1)
+        .hasNext(pageNumber < lastPage)
+        .lastPage(lastPage)
+        .build();
   }
 
   /**
-   * Преобразовать список тегов в строку для БД
+   * Внутренний класс для хранения критериев поиска
    */
-  public String formatTagsForDb(List<String> tags) {
-    if (tags == null || tags.isEmpty()) {
-      return "";
-    }
-
-    return tags.stream()
-        .map(String::toLowerCase)
-        .map(tag -> "#" + tag)
-        .collect(Collectors.joining()) + "#";
-  }
-
-  /**
-   * Критерии поиска
-   */
-  public record SearchCriteria(String titleSearch, List<String> tags) {
-  }
+  private record SearchCriteria(String titleSearch, List<String> tags) {}
 }

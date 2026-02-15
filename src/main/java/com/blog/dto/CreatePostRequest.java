@@ -1,29 +1,22 @@
 package com.blog.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
+import lombok.Data;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class CreatePostRequest {
 
+  @NotBlank(message = "Title is required")
+  @Size(min = 3, max = 255, message = "Title must be between 3 and 255 characters")
   private String title;
-  private String text;
-  private List<String> tags;
 
-  /**
-   * Конвертация массива тегов в строку для БД
-   * ["java", "spring"] → "#java#spring#"
-   * @return строка тегов
-   */
-  public String getTagsString() {
-    if (tags == null || tags.isEmpty()) {
-      return "";
-    }
-    return "#" + String.join("#", tags) + "#";
-  }
+  @NotBlank(message = "Text is required")
+  @Size(min = 10, message = "Text must be at least 10 characters")
+  private String text;
+
+  @NotNull(message = "Tags cannot be null")
+  private List<String> tags;
 }
