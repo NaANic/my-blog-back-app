@@ -17,7 +17,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/posts/{postId}/comments")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class CommentController {
 
   private final CommentService commentService;
