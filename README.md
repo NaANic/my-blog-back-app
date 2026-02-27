@@ -1,6 +1,6 @@
 # Blog Backend
 
-REST API бэкенд для приложения-блога на Spring Framework 6.1 (без Spring Boot).
+REST API бэкенд для приложения-блога на Spring Boot 3.2.
 
 ## 📋 Описание
 
@@ -16,12 +16,12 @@ REST API бэкенд для приложения-блога на Spring Framewo
 ## 🛠 Технологии
 
 - **Java 21**
-- **Spring Framework 6.1.14** (без Spring Boot)
-- **Spring Data JDBC 3.3.5**
+- **Spring Boot 3.2.4**
+- **Spring Data JDBC 3.2.2**
 - **H2 Database** (in-memory)
-- **Maven 3.9+**
-- **Tomcat 10.1**
+- **Gradle 8.4** (с Wrapper)
 - **JUnit 5** + **Mockito** (тестирование)
+- **Spring Boot Test** (интеграционные тесты)
 - **Hibernate Validator** (Bean Validation)
 - **Lombok** (упрощение кода)
 - **Logback** (логирование)
@@ -29,9 +29,7 @@ REST API бэкенд для приложения-блога на Spring Framewo
 ## 📦 Требования
 
 - JDK 21
-- Maven 3.9+
-- Apache Tomcat 10.1+
-- Docker (для запуска фронтенда)
+- Любая современная IDE (IntelliJ IDEA, Eclipse и т.д.)
 
 ## 🚀 Быстрый старт
 
@@ -45,59 +43,44 @@ cd nagatkin-blog-backend
 ### 2. Сборка проекта
 
 ```bash
-mvn clean package
+./gradlew clean build
 ```
 
-WAR-файл будет создан в `target/blog-backend.war`
+Исполняемый JAR-файл будет создан в `build/libs/blog-backend-1.0.0.jar`.
 
 ### 3. Запуск тестов
 
 ```bash
-mvn test
+./gradlew test
 ```
 
 **Результат:**
 ```
 Tests run: 50, Failures: 0, Errors: 0, Skipped: 0
-BUILD SUCCESS ✅
+BUILD SUCCESSFUL ✅
 ```
 
-### 4. Деплой в Tomcat
+### 4. Запуск приложения
 
-#### Вариант A: Через IntelliJ IDEA (рекомендуется)
-
-1. Откройте проект в IntelliJ IDEA
-2. **Run** → **Edit Configurations**
-3. Добавьте **Tomcat Server** → **Local**
-4. Укажите путь к Tomcat
-5. В **Deployment** добавьте: `nagatkin-blog-backend:war exploded`
-6. **Application context**: `/`
-7. Нажмите **Run**
-
-#### Вариант B: Вручную
-
+#### Вариант A: Через Gradle (рекомендуется для разработки)
 ```bash
-# Соберите WAR
-mvn clean package
-
-# Скопируйте в Tomcat
-cp target/blog-backend.war $TOMCAT_HOME/webapps/
-
-# Запустите Tomcat
-$TOMCAT_HOME/bin/startup.sh
-
-# Проверьте логи
-tail -f $TOMCAT_HOME/logs/catalina.out
+./gradlew bootRun
 ```
+
+#### Вариант B: Запуск исполняемого JAR
+```bash
+java -jar build/libs/blog-backend-1.0.0.jar
+```
+
+После запуска приложение будет доступно по адресу: `http://localhost:8080/api`
 
 ### 5. Проверка работы
 
-Откройте в браузере:
-```
-http://localhost:8080/api/posts?search=&pageNumber=1&pageSize=5
+```bash
+curl http://localhost:8080/api/posts?search=&pageNumber=1&pageSize=5
 ```
 
-Должен вернуться JSON с постами.
+Должен вернуться JSON со списком постов.
 
 ### 6. Запуск фронтенда (опционально)
 
@@ -110,28 +93,30 @@ docker compose up -d
 
 ## 📚 API Endpoints
 
+**Базовый URL:** `http://localhost:8080/api`
+
 ### Посты
 
 | Метод | Endpoint | Описание |
 |-------|----------|----------|
-| `GET` | `/api/posts?search=&pageNumber=1&pageSize=5` | Список постов с пагинацией и поиском |
-| `GET` | `/api/posts/{id}` | Получить пост по ID |
-| `POST` | `/api/posts` | Создать новый пост |
-| `PUT` | `/api/posts/{id}` | Обновить пост |
-| `DELETE` | `/api/posts/{id}` | Удалить пост (+ все комментарии) |
-| `POST` | `/api/posts/{id}/likes` | Лайкнуть пост |
-| `GET` | `/api/posts/{id}/image` | Получить изображение поста |
-| `PUT` | `/api/posts/{id}/image` | Загрузить изображение |
+| `GET` | `/posts?search=&pageNumber=1&pageSize=5` | Список постов с пагинацией и поиском |
+| `GET` | `/posts/{id}` | Получить пост по ID |
+| `POST` | `/posts` | Создать новый пост |
+| `PUT` | `/posts/{id}` | Обновить пост |
+| `DELETE` | `/posts/{id}` | Удалить пост (+ все комментарии) |
+| `POST` | `/posts/{id}/likes` | Лайкнуть пост |
+| `GET` | `/posts/{id}/image` | Получить изображение поста |
+| `PUT` | `/posts/{id}/image` | Загрузить изображение |
 
 ### Комментарии
 
 | Метод | Endpoint | Описание |
 |-------|----------|----------|
-| `GET` | `/api/posts/{postId}/comments` | Список комментариев поста |
-| `GET` | `/api/posts/{postId}/comments/{id}` | Получить комментарий |
-| `POST` | `/api/posts/{postId}/comments` | Создать комментарий |
-| `PUT` | `/api/posts/{postId}/comments/{id}` | Обновить комментарий |
-| `DELETE` | `/api/posts/{postId}/comments/{id}` | Удалить комментарий |
+| `GET` | `/posts/{postId}/comments` | Список комментариев поста |
+| `GET` | `/posts/{postId}/comments/{id}` | Получить комментарий |
+| `POST` | `/posts/{postId}/comments` | Создать комментарий |
+| `PUT` | `/posts/{postId}/comments/{id}` | Обновить комментарий |
+| `DELETE` | `/posts/{postId}/comments/{id}` | Удалить комментарий |
 
 ## 💡 Примеры запросов
 
@@ -206,29 +191,27 @@ curl "http://localhost:8080/api/posts?search=Spring%20%23java&pageNumber=1&pageS
 
 ```
 src/main/java/com/blog/
-├── config/                    # Конфигурация Spring
-│   ├── RootConfig.java       # Root context (БД, транзакции)
-│   ├── WebConfig.java        # Web context (MVC, JSON)
-│   ├── WebApplicationInitializer.java  # Servlet config
-│   └── SimpleCorsFilter.java # CORS фильтр
-├── controller/               # REST контроллеры
+├── BlogApplication.java           # Главный класс Spring Boot
+├── config/                       
+│   └── WebConfig.java             # Глобальная настройка CORS
+├── controller/                    # REST контроллеры
 │   ├── PostController.java
 │   ├── CommentController.java
 │   └── GlobalExceptionHandler.java
-├── dto/                      # Data Transfer Objects
+├── dto/                           # Data Transfer Objects
 │   ├── PostDTO.java
 │   ├── PostListResponse.java
 │   ├── CreatePostRequest.java
 │   └── ...
-├── exception/                # Кастомные исключения
+├── exception/                     # Кастомные исключения
 │   └── PostNotFoundException.java
-├── model/                    # Entity модели
+├── model/                         # Entity модели
 │   ├── Post.java
 │   └── Comment.java
-├── repository/               # Spring Data JDBC
+├── repository/                    # Spring Data JDBC репозитории
 │   ├── PostRepository.java
 │   └── CommentRepository.java
-└── service/                  # Бизнес-логика
+└── service/                       # Бизнес-логика
     ├── PostService.java           # CRUD операции с постами
     ├── PostSearchService.java     # Поиск и фильтрация
     ├── ImageStorageService.java   # Работа с изображениями
@@ -292,23 +275,23 @@ src/main/java/com/blog/
 
 ### Структура тестов
 
-- **30 юнит-тестов** — тесты для всех сервисов
-    - `PostServiceTest` — тесты CRUD операций
-    - `PostSearchServiceTest` — тесты поиска и фильтрации
-    - `ImageStorageServiceTest` — тесты работы с изображениями
-    - `CommentServiceTest` — тесты комментариев
-- **20 интеграционных тестов** — `PostControllerIntegrationTest`, `CommentControllerIntegrationTest`
+- **30 юнит-тестов** — тесты для всех сервисов с использованием Mockito
+  - `PostServiceTest` — тесты CRUD операций
+  - `PostSearchServiceTest` — тесты поиска и фильтрации
+  - `ImageStorageServiceTest` — тесты работы с изображениями
+  - `CommentServiceTest` — тесты комментариев
+- **20 интеграционных тестов** — `PostControllerIntegrationTest`, `CommentControllerIntegrationTest` с использованием `@SpringBootTest` и `@AutoConfigureMockMvc`
 
 ### Запуск всех тестов
 
 ```bash
-mvn test
+./gradlew test
 ```
 
 ### Запуск конкретного теста
 
 ```bash
-mvn test -Dtest=PostServiceTest
+./gradlew test --tests PostServiceTest
 ```
 
 ### Покрытие
@@ -337,7 +320,7 @@ mvn test -Dtest=PostServiceTest
 ```
 22:31:49.822 [main] INFO  c.blog.controller.CommentController - POST /posts/1/comments - text length: 34
 22:31:49.866 [main] INFO  com.blog.service.CommentService - Comment created: id=23, postId=1
-22:31:50.016 [main] INFO  com.blog.service.PostService - ✅ Returning default image: 33328 bytes
+22:31:50.016 [main] INFO  com.blog.service.ImageStorageService - ✅ Default image loaded: 33328 bytes
 ```
 
 ## 🔧 Конфигурация
@@ -348,19 +331,39 @@ mvn test -Dtest=PostServiceTest
 # Application
 app.name=Blog Backend
 app.version=1.0.0
+app.upload.dir=uploads
+
+# Server
+server.port=8080
+server.servlet.context-path=/api
+
+# Datasource (H2 in-memory)
+spring.datasource.url=jdbc:h2:mem:blogdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
 
 # H2 Console (для отладки)
 spring.h2.console.enabled=true
 spring.h2.console.path=/h2-console
 
+# SQL initialization
+spring.sql.init.mode=always
+spring.sql.init.schema-locations=classpath:schema.sql
+
 # Logging
 logging.level.com.blog=DEBUG
 logging.level.org.springframework.jdbc=DEBUG
+
+# Multipart (загрузка файлов)
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=20MB
+spring.servlet.multipart.enabled=true
 ```
 
 ### CORS
 
-CORS настроен для работы с фронтендом:
+CORS настроен глобально через класс `WebConfig`:
 - **Allowed Origins:** `*`
 - **Allowed Methods:** `GET, POST, PUT, DELETE, PATCH, OPTIONS`
 - **Allowed Headers:** `*`
@@ -395,7 +398,7 @@ CORS настроен для работы с фронтендом:
 ## 📊 Производительность
 
 - **H2 in-memory** — быстрая БД для разработки
-- **Connection pooling** — готово к добавлению (HikariCP)
+- **Connection pooling** — HikariCP (встроен в Spring Boot)
 - **Кеширование изображений** — через HTTP заголовки (`Cache-Control: max-age=3600`)
 - **@Transactional(readOnly = true)** — оптимизация для операций чтения
 
@@ -433,53 +436,32 @@ MIT License
 
 Этот проект выполнен в рамках курса **"Java-разработчик"** от Яндекс Практикум.
 
-**Модуль 1, Спринт 3** — Spring Framework без Spring Boot
+**Модуль 1, Спринт 4** — Spring Boot
 
 ### Требования проекта:
 
-✅ Spring Framework 6.1+  
+✅ Spring Boot 3.2+  
 ✅ Java 21  
-✅ Maven  
-✅ Сервлет-контейнер (Tomcat)  
+✅ Gradle (вместо Maven)  
+✅ Встроенный сервлет-контейнер (Tomcat)  
 ✅ REST API  
 ✅ База данных (H2)  
-✅ Тесты (50 юнит + интеграционных)  
+✅ Тесты (юнит + интеграционные с `@SpringBootTest`)  
 ✅ Git + GitHub  
 ✅ Bean Validation  
 ✅ Разделение ответственности (Single Responsibility Principle)
 
 ---
 
-## 🎉 Изменения после ревью
+## 🎉 Изменения
 
-### Рефакторинг архитектуры:
-- ✅ Разделён монолитный `PostService` на **4 специализированных сервиса**:
-    - `PostService` — базовые CRUD операции
-    - `PostSearchService` — поиск и фильтрация
-    - `ImageStorageService` — работа с изображениями
-    - `CommentService` — работа с комментариями
-- ✅ Улучшено разделение ответственности (Single Responsibility Principle)
-- ✅ Каждый сервис отвечает за одну область функциональности
-
-### Валидация:
-- ✅ Добавлена Bean Validation для всех DTO
-- ✅ Добавлены аннотации `@NotBlank`, `@Size`
-- ✅ Контроллеры используют `@Valid`
-
-### Обработка ошибок:
-- ✅ Улучшен `GlobalExceptionHandler`
-- ✅ Добавлена обработка `MethodArgumentNotValidException`
-- ✅ Понятные сообщения об ошибках валидации
-
-### Тестирование:
-- ✅ Добавлены тесты для всех новых сервисов
-- ✅ Обновлены интеграционные тесты
-- ✅ **50 тестов проходят успешно**
-
-### Качество кода:
-- ✅ Улучшен `.gitignore`
-- ✅ Чистая история коммитов
-- ✅ Применён принцип Single Responsibility
+- ✅ Переход на Spring Boot
+- ✅ Замена Maven на Gradle
+- ✅ Удаление устаревшей Java-конфигурации (RootConfig, WebConfig и др.)
+- ✅ Настройка `application.properties` вместо XML/Java Config
+- ✅ Интеграционные тесты с `@SpringBootTest` и `@AutoConfigureMockMvc`
+- ✅ Глобальная конфигурация CORS
+- ✅ Исполняемый JAR для простого запуска
 
 ---
 

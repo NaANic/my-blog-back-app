@@ -1,39 +1,30 @@
 package com.blog.controller;
 
-import com.blog.config.RootConfig;
-import com.blog.config.WebConfig;
+import com.blog.BlogApplication;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringJUnitConfig(classes = {RootConfig.class, WebConfig.class})
-@WebAppConfiguration
+@SpringBootTest(classes = BlogApplication.class)
+@AutoConfigureMockMvc
+@Sql(scripts = "/schema.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD) // опционально, если нужно пересоздавать БД
 class PostControllerIntegrationTest {
 
   @Autowired
-  private WebApplicationContext wac;
+  private MockMvc mockMvc;
 
   @Autowired
   private ObjectMapper objectMapper;
-
-  private MockMvc mockMvc;
-
-  @BeforeEach
-  void setup() {
-    mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
-  }
 
   @Test
   void getPosts_ShouldReturnPostList() throws Exception {
